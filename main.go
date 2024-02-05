@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -22,11 +23,26 @@ func handleForm(w http.ResponseWriter, r *http.Request) {
 	logger.Printf("Last Name :: %s", lastname)
 }
 
-func main() {
-	var fileServer http.Handler = http.FileServer(http.Dir("./static"))
+func handleHello(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodGet {
+		fmt.Fprint(w, "Hello Saurabh !!")
+	}
+}
 
-	http.Handle("/", fileServer)
+func handleFile(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodGet {
+		http.ServeFile(w, r, "./static/index.html")
+	} else {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		fmt.Fprint(w, "Wrong HTTP protocol used for accessing file")
+	}
+}
+
+func main() {
+
+	http.HandleFunc("/", handleFile)
 	http.HandleFunc("/form", handleForm)
+	http.HandleFunc("/hello", handleHello)
 
 	logger.Printf("Starting Http Server")
 	var err error = http.ListenAndServe(":8080", nil)
